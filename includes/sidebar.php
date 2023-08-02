@@ -26,7 +26,7 @@
 							<span class="nav-text">Savings</span>
 						</a>
 						<ul aria-expanded="false">
-                            <li><a href="savings-history.php">View Savings</a></li>
+                            <li><a href="savings-list.php">Savings List</a></li>
                             <li><a href="savings.php">Create Savings</a></li>
                         </ul>
 					</li>
