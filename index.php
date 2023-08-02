@@ -131,7 +131,7 @@ if (isset($_POST['amount'])) {
 														<span class="fs-14">₦5,412</span>
 													</div>
 												</div> -->
-										<button class="btn btn-outline-success rounded d-block btn-lg btn-block" data-toggle="modal" data-target="#fundAccount">Fund</button>
+										<button class="btn btn-outline-success rounded d-block btn-lg btn-block" data-toggle="modal" data-target="#fundAccount">Add Fund</button>
 										<div class="modal fade" id="fundAccount">
 											<div class="modal-dialog modal-dialog-centered" role="document">
 												<div class="modal-content">
