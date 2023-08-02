@@ -34,7 +34,10 @@ if (isset($_POST['amount'], $_POST['savingInterval'])) {
     $startDate = date("Y-m-d");
     $minimumAmount = $_POST['minimumAmount'];
 
-    $createSavingResult = $savings-> createSaving($accountId, $amount, $minimumAmount, $savingInterval, $startDate);
+    $duration = $_POST['duration'];
+    $special = isset($_POST['special']) ? true : false;
+
+    $createSavingResult = $savings->createSaving($accountId, $amount, $minimumAmount, $savingInterval, $startDate, $duration, $special);
     ob_clean();
     echo $createSavingResult;
     exit();
@@ -88,14 +91,14 @@ if (isset($_POST['amount'], $_POST['savingInterval'])) {
                                                     <div class="form-group">
                                                         <label for="amount">Amount</label>
                                                         <input type="number" name="amount" id="amount" class="form-control" min="100" required>
-                                                        <div class="invalid-feedback animated fadeInUp"  style="display: block;" >Starting Amount</div>
+                                                        <div class="invalid-feedback animated fadeInUp" style="display: block;">Starting Amount</div>
                                                     </div>
                                                     <div class="form-group">
                                                         <label for="minimumAmount">Minimum Amount</label>
                                                         <input type="number" name="minimumAmount" id="minimumAmount" class="form-control" required>
-                                                        <div class="invalid-feedback  animated fadeInUp"  style="display: block;">Specify the minimum amount expected</div>
+                                                        <div class="invalid-feedback  animated fadeInUp" style="display: block;">Specify the minimum amount expected</div>
                                                     </div>
-                                                    
+
                                                     <div class="form-group">
                                                         <label for="saving-interval">Saving Interval</label>
                                                         <select name="savingInterval" id="saving-interval" class="form-control" required>
@@ -105,6 +108,20 @@ if (isset($_POST['amount'], $_POST['savingInterval'])) {
                                                         </select>
                                                     </div>
 
+                                                    <div class="form-group">
+                                                        <label for="duration">Saving Duration</label>
+                                                        <select name="duration" id="duration" class="form-control" required>
+                                                            <option value="3">3 Months</option>
+                                                            <option value="6">6 Months</option>
+                                                            <option value="12">12 Months</option>
+                                                        </select>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <div class="form-check mb-4">
+                                                            <input type="checkbox" class="form-check-input" id="special" name="special" value="true" >
+                                                            <label class="form-check-label" for="special">Special Savings?</label>
+                                                        </div>
+                                                    </div>
                                                     <button type="submit" class="btn btn-primary" id="submit-button">
                                                         <span id="button_save">Create Savings</span>
                                                     </button>
@@ -157,14 +174,14 @@ if (isset($_POST['amount'], $_POST['savingInterval'])) {
         $("#button_save").html('<i class="fa fa-spinner fa-spin"></i> Saving...');
 
         var formData = $("#create-saving-form").serialize();
-
+        // console.log(formData);
         $.ajax({
             type: 'POST',
             url: 'savings.php',
             data: formData,
             dataType: 'json',
             success: function(response) {
-              
+
                 $("#button_save").html('Create Savings');
 
                 // Display the SweetAlert based on the response
@@ -192,8 +209,6 @@ if (isset($_POST['amount'], $_POST['savingInterval'])) {
             }
         });
     }
-
-    
 </script>
 </body>
 
