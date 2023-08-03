@@ -22,5 +22,5 @@ try {
         echo "Failed to connect to the database.";
     }
 } catch (PDOException $e) {
-    echo "Database connection error: " . $e->getMessage();
+    echo "Database connection error: " . >getMessage();
 }

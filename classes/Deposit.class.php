@@ -62,4 +62,49 @@ class Deposit
             return json_encode($value_return);
         }
     }
+
+    public function getDepositById($depositId)
+    {
+        try {
+            // Prepare the SQL statement to retrieve a deposit record by ID
+            $stmt = $this->pdo->prepare("SELECT * FROM tb_deposits WHERE id = :depositId");
+
+            // Bind the parameter
+            $stmt->bindParam(':depositId', $depositId);
+
+            // Execute the SQL statement
+            $stmt->execute();
+
+            // Fetch the deposit record
+            $deposit = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            // Return the deposit record
+            return $deposit;
+        } catch (PDOException $e) {
+            // If there is an error, return false
+            return false;
+        }
+    }
+    public function getDepositsByAccountId($accountId)
+    {
+        try {
+            // Prepare the SQL statement to retrieve deposit records by account ID
+            $stmt = $this->pdo->prepare("SELECT * FROM tb_deposits WHERE account_id = :accountId ORDER BY deposit_date DESC");
+
+            // Bind the parameter
+            $stmt->bindParam(':accountId', $accountId);
+
+            // Execute the SQL statement
+            $stmt->execute();
+
+            // Fetch all deposit records
+            $deposits = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            // Return the deposit records
+            return $deposits;
+        } catch (PDOException $e) {
+            // If there is an error, return false
+            return false;
+        }
+    }
 }
