@@ -164,4 +164,27 @@
             Content body end
         ***********************************-->
 
-<?php include('includes/footer.php') ?>
+        <?php include('includes/footer.php') ?>
+</div>
+    <!--**********************************
+        Main wrapper end
+    ***********************************-->
+
+    <!--**********************************
+        Scripts
+    ***********************************-->
+   
+	<script src="js/ajax-scripts.js"></script>
+		
+	
+	<!-- Chart piety plugin files -->
+    <script src="vendor/peity/jquery.peity.min.js"></script>
+		
+	<!-- Dashboard 1 -->
+	<script src="js/dashboard/my-wallet.js"></script>
+	
+    <!-- Datatable -->
+
+</body>
+
+</html>
