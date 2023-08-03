@@ -182,8 +182,7 @@ if (isset($_POST['amount'])) {
 														<span class="fs-14">$3,784</span>
 													</div>
 												</div> -->
-										<button class="btn btn-outline-danger rounded d-block btn-lg btn-block"> Withdraw</button>
-
+										<a class="btn btn-outline-danger rounded d-block btn-lg btn-block" href="withdrawals.php"> Withdraw</a>
 									</div>
 									<div class="col-xl-3 mb-3 col-xxl-6 col-sm-6">
 										<a class="btn btn-outline-warning rounded d-block btn-lg btn-block" href="savings.php"> Save</a>

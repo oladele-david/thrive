@@ -29,6 +29,7 @@ class Withdrawal
 
                 // Execute the SQL statement
                 if ($stmt->execute()) {
+                    $account->deductBalance($accountId, $amount);
                     // Return the ID of the newly inserted withdrawal record
                     // return $this->pdo->lastInsertId();
                     $value_return = array("response" => "success", "title" => "Success!", "msg" => "Withdrawal request successfully created");

@@ -401,4 +401,71 @@ class Account
             return json_encode($value_return);
         }
     }
+
+    public function validatePin($id, $pin)
+    {
+        try {
+            // Get the account details from the database
+            $stmt = $this->pdo->prepare("SELECT transaction_pin, pin_attempts, last_pin_attempt FROM tb_accounts WHERE id = :id");
+            $stmt->bindParam(':id', $id);
+            $stmt->execute();
+            $account = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$account || !isset($account['transaction_pin'])) {
+                // If the account does not exist or the PIN is not set, return false with locked status as false
+                return array('valid' => false, 'locked' => false);
+            }
+
+            // Compare the provided PIN with the stored hashed PIN
+            $hashedPin = base64_encode($pin);
+            if ($hashedPin === $account['transaction_pin']) {
+                // If the PIN is valid, reset the PIN attempts
+                $this->updatePinAttempts($id, 0);
+                return array('valid' => true, 'locked' => false);
+            } else {
+                // If the PIN is invalid, update the PIN attempts and lock the account if needed
+                $pinAttempts = $account['pin_attempts'] + 1;
+                $lastAttempt = strtotime($account['last_pin_attempt']);
+                $now = time();
+                $timeDifference = $now - $lastAttempt;
+
+                // If more than 5 failed attempts within 5 minutes, lock the account for 5 minutes
+                if ($pinAttempts >= 5 && $timeDifference <= 300) {
+                    $this->updatePinAttempts($id, $pinAttempts);
+                    return array('valid' => false, 'locked' => true);
+                }
+
+                // Update the PIN attempts and last PIN attempt time
+                $updateStmt = $this->pdo->prepare("UPDATE tb_accounts SET last_pin_attempt = NOW() WHERE id = :id");
+                $updateStmt->bindParam(':id', $id);
+                $updateStmt->execute();
+
+                $this->updatePinAttempts($id, $pinAttempts);
+                return array('valid' => false, 'locked' => false);
+            }
+        } catch (PDOException $e) {
+            // If there is an error, return false with locked status as false
+            return array('valid' => false, 'locked' => false);
+        }
+    }
+
+    
+
+    public function updatePinAttempts($accountId, $attempts)
+    {
+        try {
+            // Prepare SQL statement to update the PIN attempts in the database
+            $stmt = $this->pdo->prepare("UPDATE tb_accounts SET pin_attempts = :attempts WHERE id = :accountId");
+
+            // Bind the account ID and attempts to the placeholders in the SQL statement
+            $stmt->bindParam(':attempts', $attempts);
+            $stmt->bindParam(':accountId', $accountId);
+
+            // Execute the SQL statement to update the PIN attempts
+            $stmt->execute();
+        } catch (PDOException $e) {
+            // Handle the error if necessary
+        }
+    }
+
 }
