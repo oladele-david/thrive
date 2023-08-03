@@ -40,6 +40,15 @@
                         </ul>
                     </li>
 					<li><a class="has-arrow ai-icon" href="javascript:void()" aria-expanded="false">
+							<i class="flaticon-381-eject"></i>
+							<span class="nav-text">Withdrawals</span>
+						</a>
+						<ul aria-expanded="false">
+                            <li><a href="withdrawals-list.php">Withdrawals List</a></li>
+                            <li><a href="withdrawals.php">Request Withdrawal</a></li>
+                        </ul>
+					</li>
+					<li><a class="has-arrow ai-icon" href="javascript:void()" aria-expanded="false">
 							<i class="flaticon-381-settings-1"></i>
 							<span class="nav-text">Settings</span>
 						</a>
