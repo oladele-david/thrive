@@ -16,8 +16,7 @@
 						</a>
 						<ul aria-expanded="false">
 							<li><a href="deposit.php">Deposit</a></li>
-							<!-- <li><a href="savings.php">Save</a></li> -->
-							<li><a href="#3">Withdraw</a></li>
+							<li><a href="deposit-list.php">View Depoisits</a></li>
 						</ul>
                     </li>
                     
@@ -36,7 +35,10 @@
 							<span class="nav-text">Packages</span>
 						</a>
 						<ul aria-expanded="false">
-                            <li><a href="#6">Loan</a></li>
+                            <li><a href="loans.php">Loan</a></li>
+                        </ul>
+						<ul aria-expanded="false">
+                            <li><a href="loan-lists.php">Loan List</a></li>
                         </ul>
                     </li>
 					<li><a class="has-arrow ai-icon" href="javascript:void()" aria-expanded="false">
