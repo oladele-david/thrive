@@ -1,5 +1,4 @@
 <?php
-require_once('./includes/autoload.php');
 
 class Admin
 {
@@ -62,7 +61,7 @@ class Admin
             // filter inputs for malicious things
             $fullName = htmlspecialchars($fullName);
             $username = htmlspecialchars($username);
-            $password = htmlspecialchars($password);
+            $password = $password;
             $role = htmlspecialchars($role);
             $status = htmlspecialchars($status);
 

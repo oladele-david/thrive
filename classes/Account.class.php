@@ -1,6 +1,4 @@
 <?php
-require_once('./includes/autoload.php');
-
 class Account
 {
     private $pdo;
@@ -8,6 +6,25 @@ class Account
     public function __construct()
     {
         $this->pdo = Database::connect();
+    }
+
+
+    public function listAccounts()
+    {
+        try {
+            // prepare SQL statement to retrieve all accounts from the database
+            $stmt = $this->pdo->prepare("SELECT * FROM tb_accounts");
+
+            // execute the SQL statement
+            $stmt->execute();
+
+            // fetch all accounts and return the result
+            $accounts = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            return array("response" => "success", "accounts" => $accounts);
+        } catch (PDOException $e) {
+            // if there is an error, return false
+            return array("response" => "error", "title" => "Oops!", "msg" => "Something went wrong: " );
+        }
     }
 
     public function createAccount($id, $accountNumber, $phoneNo, $lastName, $firstName, $emailId, $password)

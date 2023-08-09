@@ -1,7 +1,5 @@
 <?php
 
-require_once('./includes/autoload.php');
-
 class UserLoan
 {
     private $pdo;

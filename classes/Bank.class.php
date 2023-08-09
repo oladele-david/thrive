@@ -1,6 +1,4 @@
 <?php
-require_once('./includes/autoload.php');
-
 class Bank
 {
     private $pdo;
