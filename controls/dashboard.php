@@ -10,6 +10,10 @@ if (session_status() != PHP_SESSION_ACTIVE)
 
 $admin = new Admin();
 $account = new Account();
+$userLoans = new UserLoan();
+$savings = new Savings();
+$withdrawal = new Withdrawal();
+$deposit = new Deposit();
 
 $userInSession = $_SESSION['userInSession'];
 $lastName = $_SESSION['lastName'];
@@ -29,12 +33,16 @@ $pageTitle = "Home";
 $data_admin = $admin->getAdminById($userInSession);
 
 $data_accounts_results = $account->listAccounts();
+$data_pending_user_loans_results = $userLoans->listUserLoans("pending");
+$data_active_savings_results = $savings->listSavings("active");
+$data_pending_withdrawals_results = $withdrawal->listWithdrawals("pending");
+$latest_deposits = $deposit->listLatestDepositsWithAccountInfo();
 
 $data_accounts = $data_accounts_results['accounts'];
-if (isset($_POST['amount'])) {
-	$_SESSION['amount'] = $_POST['amount'];
-	header("Location: process-payment.php");
-}
+$data_pending_user_loans = $data_pending_user_loans_results['userLoans'];
+$data_active_savings = $data_active_savings_results['savings'];
+$data_pending_withdrawals = $data_pending_withdrawals_results['withdrawals'];
+$data_latest_deposits = $latest_deposits['latest_deposits'];
 ?>
 
 <?php include('includes/header.php') ?>
@@ -57,90 +65,98 @@ if (isset($_POST['amount'])) {
 			<div class="col-xl-12 col-xxl-12 col-md-12">
 				<div class="row">
 					<div class="col-xl-3 col-lg-6 col-sm-6">
-						<div class="widget-stat card">
-							<div class="card-body p-4">
-								<div class="media ai-icon">
-									<span class="mr-3 bgl-primary text-primary">
-										<!-- <i class="ti-user"></i> -->
-										<svg id="icon-customers" xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-user">
-											<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-											<circle cx="12" cy="7" r="4"></circle>
-										</svg>
-									</span>
-									<div class="media-body">
-										<p class="mb-1">Total Users</p>
-										<h4 class="mb-0"><?php echo count($data_accounts)?></h4>
-										<!-- <span class="badge badge-primary">+3.5%</span> -->
+						<a href="users.php">
+							<div class="widget-stat card">
+								<div class="card-body p-4">
+									<div class="media ai-icon">
+										<span class="mr-3 bgl-primary text-primary">
+											<!-- <i class="ti-user"></i> -->
+											<svg id="icon-customers" xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-user">
+												<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+												<circle cx="12" cy="7" r="4"></circle>
+											</svg>
+										</span>
+										<div class="media-body">
+											<p class="mb-1">Total Users</p>
+											<h4 class="mb-0"><?php echo count($data_accounts)?></h4>
+											<!-- <span class="badge badge-primary">+3.5%</span> -->
+										</div>
 									</div>
 								</div>
 							</div>
-						</div>
+						</a>
                     </div>
                     <div class="col-xl-3 col-lg-6 col-sm-6">
-                        <div class="widget-stat card">
-							<div class="card-body p-4">
-								<div class="media ai-icon">
-									<span class="mr-3 bgl-warning text-warning">
-										<svg id="icon-orders" xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text">
-											<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-											<polyline points="14 2 14 8 20 8"></polyline>
-											<line x1="16" y1="13" x2="8" y2="13"></line>
-											<line x1="16" y1="17" x2="8" y2="17"></line>
-											<polyline points="10 9 9 9 8 9"></polyline>
-										</svg>
-									</span>
-									<div class="media-body">
-										<p class="mb-1">Pending Loans</p>
-										<h4 class="mb-0">2570</h4>
-										<!-- <span class="badge badge-warning">+3.5%</span> -->
+						<a href="userLoans.php">
+							<div class="widget-stat card">
+								<div class="card-body p-4">
+									<div class="media ai-icon">
+										<span class="mr-3 bgl-warning text-warning">
+											<svg id="icon-orders" xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text">
+												<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+												<polyline points="14 2 14 8 20 8"></polyline>
+												<line x1="16" y1="13" x2="8" y2="13"></line>
+												<line x1="16" y1="17" x2="8" y2="17"></line>
+												<polyline points="10 9 9 9 8 9"></polyline>
+											</svg>
+										</span>
+										<div class="media-body">
+											<p class="mb-1">Pending Loans</p>
+											<h4 class="mb-0"><?php echo count($data_pending_user_loans)?></h4>
+											<!-- <span class="badge badge-warning">+3.5%</span> -->
+										</div>
 									</div>
 								</div>
 							</div>
-						</div>
+						</a>
                     </div>
                     <div class="col-xl-3 col-lg-6 col-sm-6">
-                        <div class="widget-stat card">
-							<div class="card-body  p-4">
-								<div class="media ai-icon">
-									<span class="mr-3 bgl-danger text-danger">
-										<svg id="icon-revenue" xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-dollar-sign">
-											<line x1="12" y1="1" x2="12" y2="23"></line>
-											<path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
-										</svg>
-									</span>
-									<div class="media-body">
-										<p class="mb-1">Active Savings</p>
-										<h4 class="mb-0">364.50K</h4>
-										<!-- <span class="badge badge-danger">-3.5%</span> -->
+						<a href="savings.php">
+							<div class="widget-stat card">
+								<div class="card-body  p-4">
+									<div class="media ai-icon">
+										<span class="mr-3 bgl-danger text-danger">
+											<svg id="icon-revenue" xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-dollar-sign">
+												<line x1="12" y1="1" x2="12" y2="23"></line>
+												<path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+											</svg>
+										</span>
+										<div class="media-body">
+											<p class="mb-1">Active Savings</p>
+											<h4 class="mb-0"><?php echo count($data_active_savings)?></h4>
+											<!-- <span class="badge badge-danger">-3.5%</span> -->
+										</div>
 									</div>
 								</div>
 							</div>
-						</div>
+						</a>
                     </div>
                     <div class="col-xl-3 col-lg-6 col-sm-6">
-                        <div class="widget-stat card">
-							<div class="card-body p-4">
-								<div class="media ai-icon">
-									<span class="mr-3 bgl-success text-success">
-										<svg id="icon-database-widget" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-database">
-											<ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
-											<path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
-											<path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
-										</svg>
-									</span>
-									<div class="media-body">
-										<p class="mb-1">Pending Withdrawals</p>
-										<h4 class="mb-0">364.50K</h4>
-										<!-- <span class="badge badge-success">-3.5%</span> -->
+						<a href="withdrawals.php">
+							<div class="widget-stat card">
+								<div class="card-body p-4">
+									<div class="media ai-icon">
+										<span class="mr-3 bgl-success text-success">
+											<svg id="icon-database-widget" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-database">
+												<ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+												<path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
+												<path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
+											</svg>
+										</span>
+										<div class="media-body">
+											<p class="mb-1">Pending Withdrawals</p>
+											<h4 class="mb-0"><?php echo count($data_pending_withdrawals)?></h4>
+											<!-- <span class="badge badge-success">-3.5%</span> -->
+										</div>
 									</div>
 								</div>
 							</div>
-						</div>
+						</a>
                     </div>
 					<div class="col-lg-12">
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">Recent Transactions</h4>
+                                <h4 class="card-title">Recent Deposits</h4>
                             </div>
                             <div class="card-body">
                                 <div class="table-responsive">
@@ -151,34 +167,22 @@ if (isset($_POST['amount'])) {
                                                 <th>Name</th>
                                                 <th>Status</th>
                                                 <th>Date</th>
-                                                <th>Price</th>
+                                                <th>Amount</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <tr>
-                                                <th>1</th>
-                                                <td>Kolor Tea Shirt For Man</td>
-                                                <td><span class="badge badge-primary light">Sale</span>
+											<?php 
+												$counter = 1;
+												foreach ($data_latest_deposits as $latest_deposit):
+											?>
+                                                <th><?php echo  $counter ?></th>
+                                                <td><?php echo  $latest_deposit['first_name'] . ' ' . $latest_deposit['last_name'] ?></td>
+                                                <td><span class="badge badge-primary light"><?php echo  $latest_deposit['status'] ?></span>
                                                 </td>
-                                                <td>January 22</td>
-                                                <td class="color-primary">$21.56</td>
+                                                <td><?php echo $latest_deposit['deposit_date'] ?></td>
+                                                <td class="color-primary">₦<?php echo number_format($latest_deposit['amount'], 2) ?></td>
                                             </tr>
-                                            <tr>
-                                                <th>2</th>
-                                                <td>Kolor Tea Shirt For Women</td>
-                                                <td><span class="badge badge-success">Tax</span>
-                                                </td>
-                                                <td>January 30</td>
-                                                <td class="color-success">$55.32</td>
-                                            </tr>
-                                            <tr>
-                                                <th>3</th>
-                                                <td>Blue Backpack For Baby</td>
-                                                <td><span class="badge badge-danger">Extended</span>
-                                                </td>
-                                                <td>January 25</td>
-                                                <td class="color-danger">$14.85</td>
-                                            </tr>
+                                           <?php $counter++; endforeach; ?>
                                         </tbody>
                                     </table>
                                 </div>

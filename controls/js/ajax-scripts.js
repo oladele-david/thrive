@@ -1,6 +1,7 @@
 // This function updates user profile settings
 function updateProfile() {
 
+    let accountId = $("#accountId").val();
     let firstName = $("#firstName").val();
     let lastName = $("#lastName").val();
     let otherName = $("#otherName").val();
@@ -29,6 +30,7 @@ function updateProfile() {
         url:'profile.php',
         data:{
             updateProfile:"updateProfile",
+            accountId:accountId,
             lastName:lastName,
             firstName:firstName,
             otherName:otherName,
@@ -85,12 +87,12 @@ function updateProfile() {
     });
 
 
-    console.log(
-        firstName + " - " + lastName + " - " + otherName + " - " + motherMaidenName + " - " + bvn
-        + " - " + nin + " - " + phoneNo + " - " + emailId  + " - " + gender  + " - " + dateOfBirth  + " - " + address
-        + " - " + countryId  + " - " + stateId  + " - " + city  + " - " + defaultBankId  + " - " + bankAccountNo  + " - " + bankAccountName
-        + " - " + reeveAccountNo
-    ) 
+    // console.log(
+    //     firstName + " - " + lastName + " - " + otherName + " - " + motherMaidenName + " - " + bvn
+    //     + " - " + nin + " - " + phoneNo + " - " + emailId  + " - " + gender  + " - " + dateOfBirth  + " - " + address
+    //     + " - " + countryId  + " - " + stateId  + " - " + city  + " - " + defaultBankId  + " - " + bankAccountNo  + " - " + bankAccountName
+    //     + " - " + reeveAccountNo
+    // ) 
 }
 
 // This function updates User's Password
@@ -99,6 +101,7 @@ function updatePassword() {
 
     let password = $('#password').val();
     let confirmPassword = $('#confirmPassword').val();
+    let accountId = $("#accountId").val();
 
     if (password == confirmPassword) {
         $("#buttonSavePassword").css({"display":"none"});
@@ -109,6 +112,7 @@ function updatePassword() {
             url:'profile.php',
             data:{
                 updatePassword:"updatePassword",
+                accountId:accountId,
                 password:password
             },
             success:function(data) {
@@ -166,6 +170,7 @@ function updateTransactionPin() {
 
     let transactionPin = $('#transactionPin').val();
     let confirmTransactionPin = $('#confirmTransactionPin').val();
+    let accountId = $("#accountId").val();
 
     if (transactionPin == confirmTransactionPin) {
         $("#buttonSavePin").css({"display":"none"});
@@ -176,7 +181,8 @@ function updateTransactionPin() {
             url:'security.php',
             data:{
                 updateTransactionPin:"updateTransactionPin",
-                transactionPin:transactionPin
+                transactionPin:transactionPin,
+                accountId:accountId
             },
             success:function(data) {
                 var jsonData = JSON.parse(data)
@@ -236,6 +242,8 @@ function updateSecurityQA() {
 
     let securityQuestion = $('#securityQuestion').val();
     let securityAnswer = $('#securityAnswer').val();
+    let accountId = $("#accountId").val();
+
 
     $("#buttonSaveQuestion").css({"display":"none"});
     $(".loading_spinners").css({"display":"block"});
@@ -246,6 +254,7 @@ function updateSecurityQA() {
         data:{
             updateSecurity:"updateSecurity",
             securityQuestion:securityQuestion,
+            accountId:accountId,
             securityAnswer:securityAnswer
 
         },

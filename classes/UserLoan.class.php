@@ -9,6 +9,29 @@ class UserLoan
         $this->pdo = Database::connect();
     }
 
+    public function listUserLoans($status = null)
+    {
+        try {
+            // Prepare SQL statement to retrieve loans from the database based on status
+            if ($status === null) {
+                $stmt = $this->pdo->prepare("SELECT * FROM tb_user_loans");
+            } else {
+                $stmt = $this->pdo->prepare("SELECT * FROM tb_user_loans WHERE status = :status");
+                $stmt->bindParam(':status', $status);
+            }
+
+            // Execute the SQL statement
+            $stmt->execute();
+
+            // Fetch all loans and return the result
+            $userLoans = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            return array("response" => "success", "userLoans" => $userLoans);
+        } catch (PDOException $e) {
+            // If there is an error, return an error message
+            return array("response" => "error", "title" => "Oops!", "msg" => "Something went wrong while listing the loans");
+        }
+    }
+
     public function createLoan($accountId, $loanPlanId)
     {
         try {

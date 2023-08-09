@@ -102,23 +102,29 @@ class Loan
         }
     }
 
-    public function listLoans()
+    public function listLoans($status = null)
     {
         try {
-            // prepare SQL statement to retrieve all loans from the database
-            $stmt = $this->pdo->prepare("SELECT * FROM tb_loans");
+            // Prepare SQL statement to retrieve loans from the database based on status
+            if ($status === null) {
+                $stmt = $this->pdo->prepare("SELECT * FROM tb_loans");
+            } else {
+                $stmt = $this->pdo->prepare("SELECT * FROM tb_loans WHERE status = :status");
+                $stmt->bindParam(':status', $status);
+            }
 
-            // execute the SQL statement
+            // Execute the SQL statement
             $stmt->execute();
 
-            // fetch all loans and return the result
+            // Fetch all loans and return the result
             $loans = $stmt->fetchAll(PDO::FETCH_ASSOC);
             return array("response" => "success", "loans" => $loans);
         } catch (PDOException $e) {
-            // if there is an error, return false
+            // If there is an error, return an error message
             return array("response" => "error", "title" => "Oops!", "msg" => "Something went wrong while listing the loans");
         }
     }
+
 
     public function closeLoan($loanId)
     {

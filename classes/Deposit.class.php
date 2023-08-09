@@ -9,6 +9,77 @@ class Deposit
         $this->pdo = Database::connect();
     }
 
+    public function listDeposits($status = null)
+    {
+        try {
+            // Prepare SQL statement to retrieve loans from the database based on status
+            if ($status === null) {
+                $stmt = $this->pdo->prepare("SELECT * FROM tb_deposits");
+            } else {
+                $stmt = $this->pdo->prepare("SELECT * FROM tb_deposits WHERE status = :status");
+                $stmt->bindParam(':status', $status);
+            }
+
+            // Execute the SQL statement
+            $stmt->execute();
+
+            // Fetch all loans and return the result
+            $deposits = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            return array("response" => "success", "deposits" => $deposits);
+        } catch (PDOException $e) {
+            // If there is an error, return an error message
+            return array("response" => "error", "title" => "Oops!", "msg" => "Something went wrong while listing the loans");
+        }
+    }
+
+    public function listDepositsWithAccountInfo($status = null)
+    {
+        try {
+            // Prepare SQL statement to retrieve deposits from the database based on status
+            if ($status === null) {
+                $stmt = $this->pdo->prepare("SELECT d.*, a.first_name, a.last_name FROM tb_deposits d 
+                                            INNER JOIN tb_accounts a ON d.account_id = a.id");
+            } else {
+                $stmt = $this->pdo->prepare("SELECT d.*, a.first_name, a.last_name FROM tb_deposits d 
+                                            INNER JOIN tb_accounts a ON d.account_id = a.id
+                                            WHERE d.status = :status");
+                $stmt->bindParam(':status', $status);
+            }
+
+            // Execute the SQL statement
+            $stmt->execute();
+
+            // Fetch all deposits with account information and return the result
+            $deposits = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            return array("response" => "success", "deposits" => $deposits);
+        } catch (PDOException $e) {
+            // If there is an error, return an error message
+            return array("response" => "error", "title" => "Oops!", "msg" => "Something went wrong while listing the deposits");
+        }
+    }
+
+    public function listLatestDepositsWithAccountInfo()
+    {
+        try {
+            // Prepare SQL statement to retrieve the latest 5 deposits with account information
+            $stmt = $this->pdo->prepare("SELECT d.*, a.first_name, a.last_name FROM tb_deposits d 
+                                        INNER JOIN tb_accounts a ON d.account_id = a.id
+                                        ORDER BY d.deposit_date DESC
+                                        LIMIT 5");
+
+            // Execute the SQL statement
+            $stmt->execute();
+
+            // Fetch the latest 5 deposits with account information and return the result
+            $latestDeposits = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            return array("response" => "success", "latest_deposits" => $latestDeposits);
+        } catch (PDOException $e) {
+            // If there is an error, return an error message
+            return array("response" => "error", "title" => "Oops!", "msg" => "Something went wrong while listing the latest deposits");
+        }
+    }
+
+
     public function createDeposit($accountId, $amount, $status)
     {
         try {

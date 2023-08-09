@@ -5,18 +5,18 @@
             <div class="deznav-scroll">
 
 				<ul class="metismenu" id="menu">
-                    <li><a href="." aria-expanded="false">
+                    <li>
+						<a href="." aria-expanded="false">
 							<i class="flaticon-381-networking"></i>
 							<span class="nav-text">Dashboard</span>
 						</a>
                     </li>
                     <li><a class="has-arrow ai-icon" href="javascript:void()" aria-expanded="false">
-							<i class="flaticon-381-briefcase"></i>
-							<span class="nav-text">My Money</span>
+							<i class="flaticon-381-user"></i>
+							<span class="nav-text">Users</span>
 						</a>
 						<ul aria-expanded="false">
-							<li><a href="deposit.php">Deposit</a></li>
-							<li><a href="deposit-list.php">View Depoisits</a></li>
+							<li><a href="users.php">View Users</a></li>
 						</ul>
                     </li>
                     
@@ -26,7 +26,7 @@
 						</a>
 						<ul aria-expanded="false">
                             <li><a href="savings-list.php">Savings List</a></li>
-                            <li><a href="savings.php">Create Savings</a></li>
+                            <!-- <li><a href="savings.php">Create Savings</a></li> -->
                         </ul>
 					</li>
                    
@@ -35,7 +35,7 @@
 							<span class="nav-text">Packages</span>
 						</a>
 						<ul aria-expanded="false">
-                            <li><a href="loans.php">Loan</a></li>
+                            <li><a href="userLoans.php">User Loans</a></li>
                         </ul>
 						<ul aria-expanded="false">
                             <li><a href="loan-lists.php">Loan List</a></li>
@@ -50,7 +50,7 @@
                             <li><a href="withdrawals.php">Request Withdrawal</a></li>
                         </ul>
 					</li>
-					<li><a class="has-arrow ai-icon" href="javascript:void()" aria-expanded="false">
+					<!-- <li><a class="has-arrow ai-icon" href="javascript:void()" aria-expanded="false">
 							<i class="flaticon-381-settings-1"></i>
 							<span class="nav-text">Settings</span>
 						</a>
@@ -59,7 +59,7 @@
                             <li><a href="#8">Transaction</a></li>
                             <li><a href="profile.php#profile-settings">Account</a></li>
                         </ul>
-					</li>
+					</li> -->
 					<!-- <li><a class="has-arrow ai-icon" href="javascript:void()" aria-expanded="false">
 							<i class="flaticon-381-file-1"></i>
 							<span class="nav-text">Transactions</span>

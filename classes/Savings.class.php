@@ -9,6 +9,30 @@ class Savings
         $this->pdo = Database::connect();
     }
 
+
+    public function listSavings($status = null)
+    {
+        try {
+            // Prepare SQL statement to retrieve savings from the database based on status
+            if ($status === null) {
+                $stmt = $this->pdo->prepare("SELECT * FROM tb_savings");
+            } else {
+                $stmt = $this->pdo->prepare("SELECT * FROM tb_savings WHERE status = :status");
+                $stmt->bindParam(':status', $status);
+            }
+
+            // Execute the SQL statement
+            $stmt->execute();
+
+            // Fetch all savings and return the result
+            $savings = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            return array("response" => "success", "savings" => $savings);
+        } catch (PDOException $e) {
+            // If there is an error, return an error message
+            return array("response" => "error", "title" => "Oops!", "msg" => "Something went wrong while listing the savings");
+        }
+    }
+
     public function createSaving($accountId, $amount, $minimumAmount, $savingInterval, $startDate, $duration, $special)
     {
         try {

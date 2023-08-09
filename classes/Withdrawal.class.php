@@ -8,6 +8,29 @@ class Withdrawal
         $this->pdo = Database::connect();
     }
 
+    public function listWithdrawals($status = null)
+    {
+        try {
+            // Prepare SQL statement to retrieve withdrawals from the database based on status
+            if ($status === null) {
+                $stmt = $this->pdo->prepare("SELECT * FROM tb_withdrawals");
+            } else {
+                $stmt = $this->pdo->prepare("SELECT * FROM tb_withdrawals WHERE status = :status");
+                $stmt->bindParam(':status', $status);
+            }
+
+            // Execute the SQL statement
+            $stmt->execute();
+
+            // Fetch all withdrawals and return the result
+            $withdrawals = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            return array("response" => "success", "withdrawals" => $withdrawals);
+        } catch (PDOException $e) {
+            // If there is an error, return an error message
+            return array("response" => "error", "title" => "Oops!", "msg" => "Something went wrong while listing the withdrawals");
+        }
+    }
+
     public function createWithdrawal($accountId, $amount, $withdrawalDate)
     {
         try {
