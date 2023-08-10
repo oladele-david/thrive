@@ -87,11 +87,11 @@ class UserLoan
         }
     }
 
-    public function getLoanById($loanId)
+    public function getUserLoanById($userLoanId)
     {
         try {
-            $stmt = $this->pdo->prepare("SELECT * FROM tb_user_loans WHERE id = :loanId");
-            $stmt->bindParam(':loanId', $loanId);
+            $stmt = $this->pdo->prepare("SELECT * FROM tb_user_loans WHERE id = :userLoanId");
+            $stmt->bindParam(':userLoanId', $userLoanId);
             $stmt->execute();
             $loan = $stmt->fetch(PDO::FETCH_ASSOC);
             return $loan;
@@ -164,5 +164,107 @@ class UserLoan
         }
     }
    
+
+    public function listUserLoansWithAccountAndPlanInfo($status = null)
+    {
+        try {
+            // Prepare SQL statement to retrieve user loans from the database based on status
+            if ($status === null) {
+                $stmt = $this->pdo->prepare("SELECT ul.*, a.first_name, a.last_name, a.account_balance, lp.name 
+                                            FROM tb_user_loans ul
+                                            INNER JOIN tb_accounts a ON ul.account_id = a.id
+                                            INNER JOIN tb_loan_plans lp ON ul.loan_plan_id = lp.id");
+            } else {
+                $stmt = $this->pdo->prepare("SELECT ul.*, a.first_name, a.last_name, a.account_balance, lp.name 
+                                            FROM tb_user_loans ul
+                                            INNER JOIN tb_accounts a ON ul.account_id = a.id
+                                            INNER JOIN tb_loan_plans lp ON ul.loan_plan_id = lp.id
+                                            WHERE ul.status = :status");
+                $stmt->bindParam(':status', $status);
+            }
+
+            // Execute the SQL statement
+            $stmt->execute();
+
+            // Fetch all user loans with account and loan plan information and return the result
+            $userLoans = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            return array("response" => "success", "userLoans" => $userLoans);
+        } catch (PDOException $e) {
+            // If there is an error, return an error message
+            return array("response" => "error", "title" => "Oops!", "msg" => "Something went wrong while listing the user loans");
+        }
+    }
+
+    public function processLoan($userLoanId, $status)
+    {
+        try {
+            $loan = $this->getUserLoanById($userLoanId);
+            if (!$loan) {
+                // If the loan doesn't exist, return an error message
+                return array("response" => "error", "title" => "Oops!", "msg" => "Loan not found.");
+            }
+
+            if ($status === "active") {
+                $this->pdo->beginTransaction();
+
+                // Update loan status
+                $this->updateStatus($userLoanId, $status);
+
+
+                // Update user account balance
+                $accountId = $loan['account_id'];
+                $loanAmount = $loan['amount'];
+
+                $account = new Account();
+                $account->updateBalance($accountId, $loanAmount);
+
+                // Set loan start and end dates based on loan plan duration
+                $startDate = date('Y-m-d');
+                $endDate = date('Y-m-d', strtotime($startDate . " +{$loan['duration']} months"));
+                $stmt = $this->pdo->prepare("UPDATE tb_user_loans SET start_date = :startDate, end_date = :endDate WHERE id = :userLoanId");
+                $stmt->bindParam(':startDate', $startDate);
+                $stmt->bindParam(':endDate', $endDate);
+                $stmt->bindParam(':userLoanId', $userLoanId);
+                $stmt->execute();
+
+                $this->pdo->commit();
+
+                // Return success message
+                $value_return = array("response" => "success", "title" => "Success!", "msg" => "Loan processed successfully.");
+                return json_encode($value_return);
+            } elseif ($status === "cancelled") {
+               
+                $this->updateStatus($userLoanId, $status);
+
+                // Return success message
+                $value_return = array("response" => "success", "title" => "Success!", "msg" => "Loan cancelled successfully.");
+                return json_encode($value_return);
+            } else {
+                // Invalid status provided
+                $value_return = array("response" => "error", "title" => "Oops!", "msg" => "Invalid status provided.");
+                return json_encode($value_return);
+            }
+        } catch (PDOException $e) {
+            // If there is an error, return an error message
+            $value_return = array("response" => "error", "title" => "Oops!", "msg" => "Loan processing failed.");
+            return json_encode($value_return);
+        }
+    }
+
+    public function updateStatus($userLoanId, $status) 
+    {
+        try {
+            $stmt = $this->pdo->prepare("UPDATE tb_user_loans SET status = :status WHERE id = :userLoanId");
+            $stmt->bindParam(':userLoanId', $userLoanId);
+            $stmt->bindParam(':status', $status);
+            $stmt->execute();
+
+            return true;
+
+        } catch (PDOException $e) {
+            return false;
+        }
+    }
+
 
 }

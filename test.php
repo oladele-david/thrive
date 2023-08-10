@@ -2,26 +2,27 @@
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
-require_once('includes/autoload.php');
+require_once('../includes/autoload.php');
 
 $accountId = "43878086369";
-$planId = "10";
+$userLoanId = "7";
+$status = "active";
 
 // require_once('includes/autoload.php');
 
 $userLoan = new UserLoan();
 
-$register_loan = $userLoan->createLoan($accountId, $planId);
+$register_loan = $userLoan->processLoan($userLoanId, $status);
 
 if ($register_loan) {
 
-    $amount = $data_withdrawal['amount'];
-    ob_clean();
+    // $amount = $data_withdrawal['amount'];
+    // ob_clean();
     
     echo json_encode($register_loan);
     exit();
 } else {
-    ob_clean();
+    // ob_clean();
     echo json_encode($register_loan);
 
     exit();

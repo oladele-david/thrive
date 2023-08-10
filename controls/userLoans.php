@@ -1,5 +1,5 @@
 <?php
-require_once('includes/autoload.php');
+require_once('../includes/autoload.php');
 
 
 // ini_set('display_errors', 1);
@@ -25,7 +25,7 @@ if (empty($_SESSION['userInSession'])) {
     die("Redirecting to signin.php");
 }
 
-$pageTitle = "Loan Lists";
+$pageTitle = "Users Loan";
 $data_account = $account->getAccountById($userInSession);
 
 ?>
@@ -48,6 +48,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit();
     }
 }
+
+
+// ! PHP code to handle the cancel action
+if (isset($_POST['action']) && $_POST['action'] === 'approve') {
+    $userLoanId = $_POST['userLoanId'];
+    $status = $_POST['status']; // Get the PIN value from the AJAX request
+    // Validate the PIN here (you can use your existing validation code)
+    $response = $userLoans->processLoan($userLoanId, $status);
+    ob_clean();
+    echo $response;
+    exit();
+}
+
 ?>
 
 
@@ -59,8 +72,11 @@ if (isset($_POST['loadRecords'])) {
         <thead>
             <tr>
                 <th>Ref No.</th>
+                <th>Full Name</th>
+                <th>Account Balance</th>
                 <th>Amount</th>
                 <th>Interest</th>
+                <th>Loan Name</th>
                 <th>Start&nbsp;Date/End&nbsp;Date</th>
                 <th>Status</th>
                 <th>Action</th>
@@ -69,13 +85,17 @@ if (isset($_POST['loadRecords'])) {
         <tbody>
             <?php
             // Get the savings data
-            $data_loans = $userLoans->getLoansByAccountId($userInSession);
-            foreach ($data_loans as $loan) {
+            $data_loans = $userLoans->listUserLoansWithAccountAndPlanInfo();
+            foreach ($data_loans['userLoans'] as $loan) {
             ?>
                 <tr>
                     <td><?php echo $loan['ref_no']; ?></td>
+                    <td><?php echo $loan['last_name'] . " " . $loan['first_name']; ?></td>
+                    <td>₦<?php echo number_format($loan['account_balance'], 2); ?></td>
                     <td>₦<?php echo number_format($loan['amount'], 2); ?></td>
                     <td><?php echo number_format($loan['interest_rate'], 2); ?>%</td>
+                    <td><?php echo $loan['name']; ?></td>
+
                     <td>
                         <?php if ($loan['start_date'] == null && $loan['end_date'] == null) : ?>
                             <span class="badge light badge-info">
@@ -124,9 +144,10 @@ if (isset($_POST['loadRecords'])) {
                             </div>
                             <div class="dropdown-menu dropdown-menu-right">
                                 <a class="dropdown-item open-record" href="javascript:void(0)" data-loan-id="<?php echo $loan['id']; ?>">View Loan</a>
-                                <?php if ($loan['status'] === 'active') : ?>
-                                    <a class="dropdown-item add-amount" href="javascript:void(0)" data-loan-id="<?php echo $loan['id']; ?>">Pay Loan</a>
+                                <?php if ($loan['status'] === 'pending') : ?>
+                                    <a class="dropdown-item approve" href="javascript:void(0)" data-loan-id="<?php echo $loan['id']; ?>">Approve Loan</a>
                                 <?php endif; ?>
+
                                 <a class="dropdown-item view-history" href="javascript:void(0)" data-loan-id="<?php echo $loan['id']; ?>">Payment History</a>
                             </div>
                         </div>
@@ -140,8 +161,11 @@ if (isset($_POST['loadRecords'])) {
         <tfoot>
             <tr>
                 <th>Ref No.</th>
+                <th>Full Name</th>
+                <th>Account Balance</th>
                 <th>Amount</th>
                 <th>Interest</th>
+                <th>Loan Name</th>
                 <th>Start&nbsp;Date/End&nbsp;Date</th>
                 <th>Status</th>
                 <th>Action</th>
@@ -304,9 +328,9 @@ if (isset($_POST['savingId'])) {
     }
 
     /* Firefox */
-    input[type=number] {
+    /* input[type=number] {
         -moz-appearance: textfield;
-    }
+    } */
 </style>
 <!--**********************************
     Content body start
@@ -314,10 +338,10 @@ if (isset($_POST['savingId'])) {
 <div class="content-body">
     <div class="container-fluid">
         <div class="page-titles">
-            <h4>View Loans</h4>
+            <h4>View Users Loan</h4>
             <ol class="breadcrumb">
-                <li class="breadcrumb-item active"><a href="loans.php">Loans</a></li>
-                <li class="breadcrumb-item"><a href="javascript:void(0)">Loan Lists</a></li>
+                <li class="breadcrumb-item active"><a href=".">Dashboards</a></li>
+                <li class="breadcrumb-item"><a href="javascript:void(0)">Users Loan</a></li>
             </ol>
         </div>
 
@@ -434,7 +458,7 @@ if (isset($_POST['savingId'])) {
 
         $.ajax({
             type: 'post',
-            url: 'loan-lists.php',
+            url: 'userLoans.php',
             data: {
                 loadRecords: "loadRecords",
             },
@@ -463,7 +487,7 @@ if (isset($_POST['savingId'])) {
 
         $.ajax({
             type: 'POST',
-            url: 'loan-lists.php',
+            url: 'userLoans.php',
             data: formData,
             dataType: 'json',
             success: function(response) {
@@ -523,7 +547,7 @@ if (isset($_POST['savingId'])) {
             var savingId = $(this).data("saving-id");
 
             $.ajax({
-                url: 'loan-lists.php',
+                url: 'userLoans.php',
                 type: 'post',
                 data: {
                     addSavings: 'addSavings',
@@ -547,7 +571,7 @@ if (isset($_POST['savingId'])) {
             var savingId = $(this).data("saving-id");
 
             $.ajax({
-                url: 'loan-lists.php',
+                url: 'userLoans.php',
                 type: 'post',
                 data: {
                     getRecord: 'getRecord',
@@ -569,7 +593,7 @@ if (isset($_POST['savingId'])) {
             var savingId = $(this).data("saving-id");
 
             $.ajax({
-                url: 'loan-lists.php',
+                url: 'userLoans.php',
                 type: 'post',
                 data: {
                     getHistory: 'getHistory',
@@ -585,6 +609,71 @@ if (isset($_POST['savingId'])) {
             });
 
         });
+
+        $('body').on('click', '.approve', function() {
+            let userLoanId = $(this).data("loan-id");
+            swal({
+                title: 'Are you sure?',
+                text: "You won't be able to revert this!",
+                type: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, Process it!',
+                showLoaderOnConfirm: true,
+                input: 'select', // Set the input type to select
+                inputOptions: {
+                    active: 'Active',
+                    cancelled: 'Cancelled',
+                },
+                inputPlaceholder: 'Select an option', // Add a placeholder for the input field
+                inputValidator: (value) => {
+                    if (!value) {
+                        return 'You need to select an option!'; // Display an error message if no option is selected
+                    }
+                },
+                preConfirm: function(selectedValue) {
+                    return new Promise(function(resolve) {
+                        $.ajax({
+                                type: 'POST',
+                                url: 'userLoans.php', // Replace with the actual PHP file name
+                                data: {
+                                    action: "approve", // Replace
+                                    userLoanId: userLoanId,
+                                    status: selectedValue, // Include the selected status in the data object
+                                },
+                                dataType: 'json',
+                            })
+                            .done(function(results) {
+                                if (results.response == "success") {
+                                    getRecords();
+                                    Swal({
+                                        type: results.response,
+                                        title: results.title,
+                                        text: results.msg,
+                                        confirmButtonText: 'Okay'
+                                    });
+                                } else {
+                                    Swal({
+                                        type: results.response,
+                                        title: results.title,
+                                        text: results.msg,
+                                        confirmButtonText: 'Try Again'
+                                    });
+                                    getRecords();
+                                }
+                            })
+                            .fail(function(xhr, textStatus, errorThrown) {
+                                console.log(userLoanId); // Log the responseJSON object
+                                swal('Oops!', 'Something went wrong with this request!', 'error');
+                            });
+                    });
+                },
+                allowOutsideClick: false
+            });
+
+        });
+
     });
 </script>
 </body>

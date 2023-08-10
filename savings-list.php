@@ -117,11 +117,11 @@ if (isset($_POST['loadRecords'])) {
                                 </svg>
                             </div>
                             <div class="dropdown-menu dropdown-menu-right">
-                                <a class="dropdown-item open-record" href="#" data-saving-id="<?php echo $saving['id']; ?>">View Savings</a>
+                                <a class="dropdown-item open-record" href="javascript:void(0)" data-saving-id="<?php echo $saving['id']; ?>">View Savings</a>
                                 <?php if ($saving['status'] === 'active') : ?>
-                                <a class="dropdown-item add-amount" href="#" data-saving-id="<?php echo $saving['id']; ?>">Add to Savings</a>
+                                <a class="dropdown-item add-amount" href="javascript:void(0)" data-saving-id="<?php echo $saving['id']; ?>">Add to Savings</a>
                                 <?php endif; ?>
-                                <a class="dropdown-item view-history" href="#" data-saving-id="<?php echo $saving['id']; ?>">Saving History</a>
+                                <a class="dropdown-item view-history" href="javascript:void(0)" data-saving-id="<?php echo $saving['id']; ?>">Saving History</a>
                             </div>
                         </div>
                     </td>

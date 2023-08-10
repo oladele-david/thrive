@@ -275,12 +275,12 @@
                          '</div>' +
                          '</div>';
 
-                 if ($('body').find("#" + this.name).length <= 0)
+                 if ($('body').find("javascript:void(0)" + this.name).length <= 0)
                  {
                     $('body').append(this.template);
 
                     if (this)
-                       this.dtpElement = $('body').find("#" + this.name);
+                       this.dtpElement = $('body').find("javascript:void(0)" + this.name);
                     this.$dtpElement = $(this.dtpElement);
                  }
               },
