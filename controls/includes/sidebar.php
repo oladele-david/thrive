@@ -37,9 +37,9 @@
 						<ul aria-expanded="false">
                             <li><a href="userLoans.php">User Loans</a></li>
                         </ul>
-						<ul aria-expanded="false">
+						<!-- <ul aria-expanded="false">
                             <li><a href="loan-lists.php">Loan List</a></li>
-                        </ul>
+                        </ul> -->
                     </li>
 					<li><a class="has-arrow ai-icon" href="javascript:void()" aria-expanded="false">
 							<i class="flaticon-381-eject"></i>
@@ -47,7 +47,7 @@
 						</a>
 						<ul aria-expanded="false">
                             <li><a href="withdrawals-list.php">Withdrawals List</a></li>
-                            <li><a href="withdrawals.php">Request Withdrawal</a></li>
+                            <!-- <li><a href="withdrawals.php">Request Withdrawal</a></li> -->
                         </ul>
 					</li>
 					<!-- <li><a class="has-arrow ai-icon" href="javascript:void()" aria-expanded="false">

@@ -75,7 +75,7 @@ if (isset($_POST['loadRecords'])) {
                     <td><?php echo $data_account['id']; ?></td>
                     <td><?php echo $data_account['last_name'] . " ". $data_account['first_name']; ?></td>
                     <td><?php echo $data_account['email_id']; ?></td>
-                    <td>₦<?php echo number_format($saving['account_balance'], 2); ?></td>
+                    <td>₦<?php echo number_format($data_account['account_balance'], 2); ?></td>
                     <td><?php echo $data_account['account_number']; ?></td>
                     <td>
                         <!-- Dropdown menu for actions -->

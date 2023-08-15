@@ -111,7 +111,7 @@ $data_latest_deposits = $latest_deposits['latest_deposits'];
 						</a>
                     </div>
                     <div class="col-xl-3 col-lg-6 col-sm-6">
-						<a href="savings.php">
+						<a href="savings-list.php">
 							<div class="widget-stat card">
 								<div class="card-body  p-4">
 									<div class="media ai-icon">
@@ -132,7 +132,7 @@ $data_latest_deposits = $latest_deposits['latest_deposits'];
 						</a>
                     </div>
                     <div class="col-xl-3 col-lg-6 col-sm-6">
-						<a href="withdrawals.php">
+						<a href="withdrawals-list.php">
 							<div class="widget-stat card">
 								<div class="card-body p-4">
 									<div class="media ai-icon">

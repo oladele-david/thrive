@@ -33,6 +33,34 @@ class Savings
         }
     }
 
+    public function listSavingsWithUserInfo($status = null)
+    {
+        try {
+            // Prepare SQL statement to retrieve savings from the database based on status
+            if ($status === null) {
+                $stmt = $this->pdo->prepare("SELECT s.*, a.first_name, a.last_name, a.account_balance 
+                                            FROM tb_savings s
+                                            INNER JOIN tb_accounts a ON s.account_id = a.id");
+            } else {
+                $stmt = $this->pdo->prepare("SELECT s.*, a.first_name, a.last_name, a.account_balance 
+                                            FROM tb_savings s
+                                            INNER JOIN tb_accounts a ON s.account_id = a.id
+                                            WHERE s.status = :status");
+                $stmt->bindParam(':status', $status);
+            }
+
+            // Execute the SQL statement
+            $stmt->execute();
+
+            // Fetch all savings with user info and return the result
+            $savings = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            return array("response" => "success", "savings" => $savings);
+        } catch (PDOException $e) {
+            // If there is an error, return an error message
+            return array("response" => "error", "title" => "Oops!", "msg" => "Something went wrong while listing the savings");
+        }
+    }
+
     public function createSaving($accountId, $amount, $minimumAmount, $savingInterval, $startDate, $duration, $special)
     {
         try {

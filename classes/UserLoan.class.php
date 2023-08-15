@@ -195,6 +195,32 @@ class UserLoan
         }
     }
 
+    public function userLoansWithAccountAndPlanInfo($userLoanId)
+    {
+        try {
+            // Prepare SQL statement to retrieve user loans from the database based on status
+
+            $stmt = $this->pdo->prepare("SELECT ul.*, a.first_name, a.last_name, a.account_balance, lp.name 
+                                            FROM tb_user_loans ul
+                                            INNER JOIN tb_accounts a ON ul.account_id = a.id
+                                            INNER JOIN tb_loan_plans lp ON ul.loan_plan_id = lp.id
+                                            WHERE ul.id = :userLoanId");
+            $stmt->bindParam(':userLoanId', $userLoanId);
+
+
+            // Execute the SQL statement
+            $stmt->execute();
+
+            // Fetch all user loans with account and loan plan information and return the result
+            $userLoan = $stmt->fetch(PDO::FETCH_ASSOC);
+            return  $userLoan;
+        } catch (PDOException $e) {
+            // If there is an error, return an error message
+            return false;
+        }
+    }
+
+
     public function processLoan($userLoanId, $status)
     {
         try {
@@ -214,6 +240,10 @@ class UserLoan
                 // Update user account balance
                 $accountId = $loan['account_id'];
                 $loanAmount = $loan['amount'];
+                $loanInterest = $loan['interest_rate'];
+
+                $interestAmount = ($loanInterest/100 * $loanAmount);
+                $amountToReturn = ($loanAmount + ($interestAmount*$loan['duration']));
 
                 $account = new Account();
                 $account->updateBalance($accountId, $loanAmount);
@@ -221,9 +251,10 @@ class UserLoan
                 // Set loan start and end dates based on loan plan duration
                 $startDate = date('Y-m-d');
                 $endDate = date('Y-m-d', strtotime($startDate . " +{$loan['duration']} months"));
-                $stmt = $this->pdo->prepare("UPDATE tb_user_loans SET start_date = :startDate, end_date = :endDate WHERE id = :userLoanId");
+                $stmt = $this->pdo->prepare("UPDATE tb_user_loans SET start_date = :startDate, end_date = :endDate, amount_return = :amountToReturn WHERE id = :userLoanId");
                 $stmt->bindParam(':startDate', $startDate);
                 $stmt->bindParam(':endDate', $endDate);
+                $stmt->bindParam(':amountToReturn', $amountToReturn);
                 $stmt->bindParam(':userLoanId', $userLoanId);
                 $stmt->execute();
 

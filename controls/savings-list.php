@@ -11,8 +11,9 @@ if (session_status() != PHP_SESSION_ACTIVE)
 
 $account = new Account();
 $savings = new Savings();
-$userLoans = new UserLoan();
 $savingsHistory = new SavingsHistory();
+
+$accountId  = (isset($_REQUEST['accountId'])) ? $_REQUEST['accountId'] : $_POST['accountId'] ;
 
 $userInSession = $_SESSION['userInSession'];
 $lastName = $_SESSION['lastName'];
@@ -25,9 +26,8 @@ if (empty($_SESSION['userInSession'])) {
     die("Redirecting to signin.php");
 }
 
-$pageTitle = "Users Loan";
-$data_account = $account->getAccountById($userInSession);
-$userLoanId = $_POST['userLoanId'];
+$pageTitle = "Savings List";
+$data_account = $account->getAccountById($accountId);
 
 ?>
 
@@ -36,12 +36,12 @@ $userLoanId = $_POST['userLoanId'];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Check if the required data is provided
-    if (isset($_POST['userLoanId'], $_POST['addAmount'])) {
-        $userLoanId = $_POST['userLoanId'];
+    if (isset($_POST['savingId'], $_POST['addAmount'])) {
+        $savingId = $_POST['savingId'];
         $addAmount = $_POST['addAmount'];
 
         // Implement your code to update the savings amount in the database
-        $updateResult = $savings->updateSaving($userLoanId, $addAmount, $userInSession);
+        $updateResult = $savings->updateSaving($savingId, $addAmount, $accountId);
 
         // Return the response as JSON
         ob_clean();
@@ -49,19 +49,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit();
     }
 }
-
-
-// ! PHP code to handle the cancel action
-if (isset($_POST['action']) && $_POST['action'] === 'approve') {
-    $userLoanId = $_POST['userLoanId'];
-    $status = $_POST['status']; // Get the PIN value from the AJAX request
-    // Validate the PIN here (you can use your existing validation code)
-    $response = $userLoans->processLoan($userLoanId, $status);
-    ob_clean();
-    echo $response;
-    exit();
-}
-
 ?>
 
 
@@ -74,60 +61,50 @@ if (isset($_POST['loadRecords'])) {
             <tr>
                 <th>Ref No.</th>
                 <th>Full Name</th>
-                <th>Account Balance</th>
                 <th>Amount</th>
-                <th>Interest</th>
-                <th>Loan Name</th>
-                <th>Start&nbsp;Date/End&nbsp;Date</th>
-                <th>Status</th>
+                <th>Minimum Amount</th>
+                <th>Start Date</th>
+                <th>Status/Type</th>
                 <th>Action</th>
+
             </tr>
         </thead>
         <tbody>
             <?php
             // Get the savings data
-            $data_loans = $userLoans->listUserLoansWithAccountAndPlanInfo();
-            foreach ($data_loans['userLoans'] as $loan) {
+            $savingsData = $savings->listSavingsWithUserInfo();
+            foreach ($savingsData['savings'] as $saving) {
             ?>
                 <tr>
-                    <td><?php echo $loan['ref_no']; ?></td>
-                    <td><?php echo $loan['last_name'] . " " . $loan['first_name']; ?></td>
-                    <td>₦<?php echo number_format($loan['account_balance'], 2); ?></td>
-                    <td>₦<?php echo number_format($loan['amount'], 2); ?></td>
-                    <td><?php echo number_format($loan['interest_rate'], 2); ?>%</td>
-                    <td><?php echo $loan['name']; ?></td>
-
+                    <td><?php echo $saving['ref_no']; ?></td>
+                    <td><?php echo $saving['last_name'] . " ". $saving['first_name']; ?></td>
+                    <td>₦<?php echo number_format($saving['amount'], 2); ?></td>
+                    <td>₦<?php echo number_format($saving['minimum_amount'], 2); ?></td>
+                    <td><?php echo $saving['start_date']; ?></td>
                     <td>
-                        <?php if ($loan['start_date'] == null && $loan['end_date'] == null) : ?>
-                            <span class="badge light badge-info">
-                                <i class="fa fa-circle text-info mr-1"></i>
-                                Pending
-                            </span>
-                        <?php else : ?>
-                            <span class="badge light badge-success">
-                                <i class="fa fa-circle text-success mr-1"></i>
-                                <?php
-                                $startDate = $loan['start_date'];
-                                $endDate = $loan['end_date'];
-                                echo date('d-m-Y', strtotime($startDate)) . " / " . date('d-m-Y', strtotime($startDate));
-                                ?>
-                            </span>
-                        <?php endif; ?>
-
-                    </td>
-                    <td>
-                        <?php if ($loan['status'] === 'active') : ?>
+                        <?php if ($saving['status'] === 'active') : ?>
                             <span class="badge light badge-warning">
                                 <i class="fa fa-circle text-warning mr-1"></i>
                                 Active
-                            </span>
+                            </span>&nbsp;|&nbsp;
                         <?php else : ?>
                             <span class="badge light badge-danger">
                                 <i class="fa fa-circle text-danger mr-1"></i>
-                                <?php echo ucwords($loan['status']); ?>
-                            </span>
+                                Ended
+                            </span>&nbsp;|&nbsp;
                         <?php endif; ?>
 
+                        <?php if ($saving['special'] == 1) : ?>
+                            <span class="badge light badge-success">
+                                <i class="fa fa-circle text-success mr-1"></i>
+                                Special
+                            </span>
+                        <?php else : ?>
+                            <span class="badge light badge-info">
+                                <i class="fa fa-circle text-info mr-1"></i>
+                                Normal
+                            </span>
+                        <?php endif; ?>
                     </td>
 
                     <td>
@@ -144,12 +121,11 @@ if (isset($_POST['loadRecords'])) {
                                 </svg>
                             </div>
                             <div class="dropdown-menu dropdown-menu-right">
-                                <a class="dropdown-item open-record" href="javascript:void(0)" data-loan-id="<?php echo $loan['id']; ?>">View Loan</a>
-                                <?php if ($loan['status'] === 'pending') : ?>
-                                    <a class="dropdown-item approve" href="javascript:void(0)" data-loan-id="<?php echo $loan['id']; ?>">Approve Loan</a>
+                                <a class="dropdown-item open-record" href="javascript:void(0)" data-saving-id="<?php echo $saving['id']; ?>" data-account-id="<?php echo $saving['account_id']; ?>">View Savings</a>
+                                <?php if ($saving['status'] === 'active') : ?>
+                                <a class="dropdown-item add-amount" href="javascript:void(0)" data-saving-id="<?php echo $saving['id']; ?>" data-account-id="<?php echo $saving['account_id']; ?>">Add to Savings</a>
                                 <?php endif; ?>
-
-                                <a class="dropdown-item view-history" href="javascript:void(0)" data-loan-id="<?php echo $loan['id']; ?>">Payment History</a>
+                                <a class="dropdown-item view-history" href="javascript:void(0)" data-saving-id="<?php echo $saving['id']; ?>" data-account-id="<?php echo $saving['account_id']; ?>">Saving History</a>
                             </div>
                         </div>
                     </td>
@@ -163,14 +139,11 @@ if (isset($_POST['loadRecords'])) {
             <tr>
                 <th>Ref No.</th>
                 <th>Full Name</th>
-                <th>Account Balance</th>
                 <th>Amount</th>
-                <th>Interest</th>
-                <th>Loan Name</th>
-                <th>Start&nbsp;Date/End&nbsp;Date</th>
-                <th>Status</th>
+                <th>Minimum Amount</th>
+                <th>Start Date</th>
+                <th>Status/Type</th>
                 <th>Action</th>
-
             </tr>
         </tfoot>
     </table>
@@ -183,8 +156,8 @@ if (isset($_POST['loadRecords'])) {
 
 <?php
 if (isset($_POST['getHistory'])) {
-    $userLoanId = $_POST['userLoanId'];
-    // $history = $savingsHistory->getSavingsHistoryByUserLoanId($userLoanId);
+    $savingId = $_POST['savingId'];
+    $history = $savingsHistory->getSavingsHistoryBySavingId($savingId);
 
 ?>
 
@@ -198,20 +171,20 @@ if (isset($_POST['getHistory'])) {
         </thead>
         <tbody>
             <?php
-            // Get the savings data
-            $counter = 0;
-            $amount = 0;
-            foreach ($history as $hist) {
-                $counter++;
-                $amount = $amount + $hist['amount'];
+                // Get the savings data
+                $counter = 0;
+                $amount =0;
+                foreach ($history as $hist) {
+                    $counter++;
+                    $amount = $amount + $hist['amount'];
             ?>
                 <tr>
                     <td><span class="badge badge-pill badge-primary p-2"><?php echo str_pad($counter, 3, "0", STR_PAD_LEFT); ?></span></td>
                     <td>₦<?php echo number_format($hist['amount'], 2); ?></td>
-                    <td><?php echo $hist['transaction_date']; ?></td>
+                    <td><?php echo $hist['transaction_date']; ?></td> 
                 </tr>
             <?php
-            }
+                }
             ?>
         </tbody>
         <tfoot>
@@ -223,7 +196,7 @@ if (isset($_POST['getHistory'])) {
         </tfoot>
     </table>
     <div class="form-group">
-        <label for="">Total Amount: ₦ <?php echo number_format($amount, 2) ?></label>
+        <label for="">Total Amount:  ₦ <?php echo number_format($amount, 2) ?></label>
     </div>
 <?php
     exit();
@@ -232,50 +205,53 @@ if (isset($_POST['getHistory'])) {
 
 <?php
 if (isset($_POST['addSavings'])) {
-    $userLoanId = $_POST['userLoanId'];
+    $savingId = $_POST['savingId'];
 ?>
     <div class="form-group">
         <label for="addAmount">Amount to Add: <small>Balance: ₦ <?php echo number_format($data_account['account_balance'], 2) ?></small></label>
         <input type="number" class="form-control" id="addAmount" name="addAmount" required>
     </div>
-    <input type="hidden" id="userLoanId" name="userLoanId" value="<?php echo $userLoanId ?>">
+    <input type="hidden" id="savingId" name="savingId" value="<?php echo $savingId ?>">
 <?php
     exit();
 }
 ?>
 
 <?php
-if (isset($_POST['userLoanId'])) {
-    $userLoanId = $_POST['userLoanId'];
-    $userLoan = $userLoans->userLoansWithAccountAndPlanInfo($userLoanId);
-    // echo var_dump($userLoan);
+if (isset($_POST['savingId'])) {
+    $savingId = $_POST['savingId'];
+    $saving = $savings->getSaving($savingId)
 ?>
     <table class="table table-striped">
         <tbody>
             <tr>
                 <td>Ref No.</td>
-                <td><?php echo $userLoan['ref_no']; ?></td>
+                <td><?php echo $saving['ref_no']; ?></td>
             </tr>
             <tr>
                 <td>Amount</td>
-                <td>₦<?php echo number_format($userLoan['amount'], 2); ?></td>
+                <td>₦<?php echo number_format($saving['amount'], 2); ?></td>
             </tr>
             <tr>
-                <td>Amount To Pay</td>
-                <td>₦<?php echo number_format($userLoan['amount_return'], 2); ?></td>
+                <td>Minimum Amount</td>
+                <td>₦<?php echo number_format($saving['minimum_amount'], 2); ?></td>
+            </tr>
+            <tr>
+                <td>Saving Interval</td>
+                <td><?php echo $saving['saving_interval']; ?></td>
             </tr>
             <tr>
                 <td>Start Date</td>
-                <td><?php echo $userLoan['start_date']; ?></td>
+                <td><?php echo $saving['start_date']; ?></td>
             </tr>
             <tr>
                 <td>End Date</td>
-                <td><?php echo $userLoan['end_date']; ?></td>
+                <td><?php echo $saving['ending_date']; ?></td>
             </tr>
             <tr>
                 <td>Status</td>
                 <td>
-                    <?php if ($userLoan['status'] === 'active') : ?>
+                    <?php if ($saving['status'] === 'active') : ?>
                         <span class="badge light badge-warning">
                             <i class="fa fa-circle text-warning mr-1"></i>
                             Active
@@ -289,16 +265,24 @@ if (isset($_POST['userLoanId'])) {
                 </td>
             </tr>
             <tr>
-                <td>Account Holder</td>
-                <td><?php echo $userLoan['first_name'] . ' ' . $userLoan['last_name']; ?></td>
+                <td>Type</td>
+                <td>
+                    <?php if ($saving['special'] == 1) : ?>
+                        <span class="badge light badge-success">
+                            <i class="fa fa-circle text-success mr-1"></i>
+                            Special
+                        </span>
+                    <?php else : ?>
+                        <span class="badge light badge-info">
+                            <i class="fa fa-circle text-info mr-1"></i>
+                            Normal
+                        </span>
+                    <?php endif; ?>
+                </td>
             </tr>
             <tr>
-                <td>Account Balance</td>
-                <td>₦<?php echo number_format($userLoan['account_balance'], 2); ?></td>
-            </tr>
-            <tr>
-                <td>Loan Plan</td>
-                <td><?php echo $userLoan['name']; ?></td>
+                <td>Next Removing Date</td>
+                <td><?php echo $saving['next_removing_date']; ?></td>
             </tr>
         </tbody>
     </table>
@@ -318,9 +302,9 @@ if (isset($_POST['userLoanId'])) {
     }
 
     /* Firefox */
-    /* input[type=number] {
+    input[type=number] {
         -moz-appearance: textfield;
-    } */
+    }
 </style>
 <!--**********************************
     Content body start
@@ -328,15 +312,15 @@ if (isset($_POST['userLoanId'])) {
 <div class="content-body">
     <div class="container-fluid">
         <div class="page-titles">
-            <h4>View Users Loan</h4>
+            <h4>View Savings</h4>
             <ol class="breadcrumb">
-                <li class="breadcrumb-item active"><a href=".">Dashboards</a></li>
-                <li class="breadcrumb-item"><a href="javascript:void(0)">Users Loan</a></li>
+                <li class="breadcrumb-item active"><a href=".">Savings</a></li>
+                <li class="breadcrumb-item"><a href="javascript:void(0)">Savings List</a></li>
             </ol>
         </div>
 
         <!-- row -->
-        <?php include('alerts.php') ?>
+        <?php //include('alerts.php') ?>
         <div class="row">
             <div class="col-xl-12">
                 <div class="card">
@@ -375,12 +359,12 @@ if (isset($_POST['userLoanId'])) {
     </div>
 </div>
 
-<!-- View User Loan Modal -->
-<div class="modal fade" id="viewRecordModal" tabindex="-1" role="dialog" aria-labelledby="viewRecordModalLabel" aria-hidden="true">
+<!-- View Savings Modal -->
+<div class="modal fade" id="viewSavingsModal" tabindex="-1" role="dialog" aria-labelledby="viewSavingsModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="viewRecordModalLabel">View User Loan</h5>
+                <h5 class="modal-title" id="viewSavingsModalLabel">View Savings</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -400,7 +384,7 @@ if (isset($_POST['userLoanId'])) {
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="viewHistoryModalLabel">View User Loan History</h5>
+                <h5 class="modal-title" id="viewHistoryModalLabel">View Savings History</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -448,7 +432,7 @@ if (isset($_POST['userLoanId'])) {
 
         $.ajax({
             type: 'post',
-            url: 'userLoans.php',
+            url: 'savings-list.php',
             data: {
                 loadRecords: "loadRecords",
             },
@@ -477,7 +461,7 @@ if (isset($_POST['userLoanId'])) {
 
         $.ajax({
             type: 'POST',
-            url: 'userLoans.php',
+            url: 'savings-list.php',
             data: formData,
             dataType: 'json',
             success: function(response) {
@@ -534,14 +518,16 @@ if (isset($_POST['userLoanId'])) {
     $(document).ready(function() {
         $(document).on("click", ".add-amount", function() {
             // Get the saving ID
-            var userLoanId = $(this).data("saving-id");
+            var savingId = $(this).data("saving-id");
+            var accountId = $(this).data("account-id");
 
             $.ajax({
-                url: 'userLoans.php',
+                url: 'savings-list.php',
                 type: 'post',
                 data: {
                     addSavings: 'addSavings',
-                    userLoanId: userLoanId
+                    savingId: savingId,
+                    accountId: accountId
                 },
                 success: function(response) {
                     // Add response in Modal body
@@ -558,20 +544,22 @@ if (isset($_POST['userLoanId'])) {
 
         $(document).on("click", ".open-record", function() {
             // Get the saving ID
-            var userLoanId = $(this).data("loan-id");
+            var savingId = $(this).data("saving-id");
+            var accountId = $(this).data("account-id");
 
             $.ajax({
-                url: 'userLoans.php',
+                url: 'savings-list.php',
                 type: 'post',
                 data: {
                     getRecord: 'getRecord',
-                    userLoanId: userLoanId
+                    savingId: savingId,
+                    accountId: accountId
                 },
                 success: function(response) {
                     // Add response in Modal body
                     $('.record-body').html(response);
                     // Display Modal
-                    $("#viewRecordModal").modal('show');
+                    $("#viewSavingsModal").modal('show');
 
                 }
             });
@@ -580,18 +568,20 @@ if (isset($_POST['userLoanId'])) {
 
         $(document).on("click", ".view-history", function() {
             // Get the saving ID
-            var userLoanId = $(this).data("saving-id");
+            var savingId = $(this).data("saving-id");
+            var accountId = $(this).data("account-id");
 
             $.ajax({
-                url: 'userLoans.php',
+                url: 'savings-list.php',
                 type: 'post',
                 data: {
                     getHistory: 'getHistory',
-                    userLoanId: userLoanId
+                    savingId: savingId,
+                    accountId: accountId
                 },
                 success: function(response) {
                     // Add response in Modal body
-                    $('.record-body').html(response);
+                    $('.record-body').html(response);                
                     // Display Modal
                     $("#viewHistoryModal").modal('show');
 
@@ -599,71 +589,6 @@ if (isset($_POST['userLoanId'])) {
             });
 
         });
-
-        $('body').on('click', '.approve', function() {
-            let userLoanId = $(this).data("loan-id");
-            swal({
-                title: 'Are you sure?',
-                text: "You won't be able to revert this!",
-                type: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#3085d6',
-                cancelButtonColor: '#d33',
-                confirmButtonText: 'Yes, Process it!',
-                showLoaderOnConfirm: true,
-                input: 'select', // Set the input type to select
-                inputOptions: {
-                    active: 'Active',
-                    cancelled: 'Cancelled',
-                },
-                inputPlaceholder: 'Select an option', // Add a placeholder for the input field
-                inputValidator: (value) => {
-                    if (!value) {
-                        return 'You need to select an option!'; // Display an error message if no option is selected
-                    }
-                },
-                preConfirm: function(selectedValue) {
-                    return new Promise(function(resolve) {
-                        $.ajax({
-                                type: 'POST',
-                                url: 'userLoans.php', // Replace with the actual PHP file name
-                                data: {
-                                    action: "approve", // Replace
-                                    userLoanId: userLoanId,
-                                    status: selectedValue, // Include the selected status in the data object
-                                },
-                                dataType: 'json',
-                            })
-                            .done(function(results) {
-                                if (results.response == "success") {
-                                    getRecords();
-                                    Swal({
-                                        type: results.response,
-                                        title: results.title,
-                                        text: results.msg,
-                                        confirmButtonText: 'Okay'
-                                    });
-                                } else {
-                                    Swal({
-                                        type: results.response,
-                                        title: results.title,
-                                        text: results.msg,
-                                        confirmButtonText: 'Try Again'
-                                    });
-                                    getRecords();
-                                }
-                            })
-                            .fail(function(xhr, textStatus, errorThrown) {
-                                console.log(userLoanId); // Log the responseJSON object
-                                swal('Oops!', 'Something went wrong with this request!', 'error');
-                            });
-                    });
-                },
-                allowOutsideClick: false
-            });
-
-        });
-
     });
 </script>
 </body>

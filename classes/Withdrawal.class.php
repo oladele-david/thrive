@@ -13,16 +13,21 @@ class Withdrawal
         try {
             // Prepare SQL statement to retrieve withdrawals from the database based on status
             if ($status === null) {
-                $stmt = $this->pdo->prepare("SELECT * FROM tb_withdrawals");
+                $stmt = $this->pdo->prepare("SELECT w.*, a.first_name, a.last_name, a.email_id
+                                            FROM tb_withdrawals w
+                                            INNER JOIN tb_accounts a ON w.account_id = a.id");
             } else {
-                $stmt = $this->pdo->prepare("SELECT * FROM tb_withdrawals WHERE status = :status");
+                $stmt = $this->pdo->prepare("SELECT w.*, a.first_name, a.last_name, a.email_id
+                                            FROM tb_withdrawals w
+                                            INNER JOIN tb_accounts a ON w.account_id = a.id
+                                            WHERE w.status = :status");
                 $stmt->bindParam(':status', $status);
             }
 
             // Execute the SQL statement
             $stmt->execute();
 
-            // Fetch all withdrawals and return the result
+            // Fetch all withdrawals with user details and return the result
             $withdrawals = $stmt->fetchAll(PDO::FETCH_ASSOC);
             return array("response" => "success", "withdrawals" => $withdrawals);
         } catch (PDOException $e) {
@@ -30,6 +35,7 @@ class Withdrawal
             return array("response" => "error", "title" => "Oops!", "msg" => "Something went wrong while listing the withdrawals");
         }
     }
+
 
     public function createWithdrawal($accountId, $amount, $withdrawalDate)
     {
@@ -74,7 +80,10 @@ class Withdrawal
     {
         try {
             // Prepare the SQL statement to retrieve a withdrawal record by ID
-            $stmt = $this->pdo->prepare("SELECT * FROM tb_withdrawals WHERE id = :withdrawalId");
+            $stmt = $this->pdo->prepare("SELECT w.*, a.first_name, a.last_name, a.email_id
+                                        FROM tb_withdrawals w
+                                        INNER JOIN tb_accounts a ON w.account_id = a.id
+                                        WHERE w.id = :withdrawalId");
 
             // Bind the parameter
             $stmt->bindParam(':withdrawalId', $withdrawalId);
@@ -137,5 +146,62 @@ class Withdrawal
             return false;
         }
     }
+
+    public function processWithdrawal($withdrawalId, $status)
+    {
+        try {
+            // Start a transaction
+            $this->pdo->beginTransaction();
+
+            // Get the withdrawal record by ID
+            $withdrawal = $this->getWithdrawalById($withdrawalId);
+
+            if (!$withdrawal) {
+                // If the withdrawal record does not exist, return an error message
+                $value_return = array("response" => "error", "title" => "Oops!", "msg" => "Withdrawal record not found.");
+                return json_encode($value_return);
+            }
+
+            // Update the status of the withdrawal
+            $updateStatusResult = $this->updateWithdrawalStatus($withdrawalId, $status);
+
+            if (!$updateStatusResult) {
+                // If updating status fails, rollback the transaction and return an error message
+                $this->pdo->rollBack();
+                $value_return = array("response" => "error", "title" => "Oops!", "msg" => "Failed to update withdrawal status.");
+                return json_encode($value_return);
+            }
+
+            // If the status is 'Cancelled', update the user account balance
+            if ($status === 'cancelled') {
+                $account = new Account();
+                $accountId = $withdrawal['account_id'];
+                $amount = $withdrawal['amount'];
+
+                $account = new Account();
+                $updateBalanceResult = $account->updateBalance($accountId, $amount);
+
+                if (!$updateBalanceResult) {
+                    // If updating balance fails, rollback the transaction and return an error message
+                    $this->pdo->rollBack();
+                    $value_return = array("response" => "error", "title" => "Oops!", "msg" => "Failed to update account balance.");
+                    return json_encode($value_return);
+                }
+            }
+
+            // Commit the transaction
+            $this->pdo->commit();
+
+            // Return a success message
+            $value_return = array("response" => "success", "title" => "Success!", "msg" => "Withdrawal processed successfully.");
+            return json_encode($value_return);
+        } catch (PDOException $e) {
+            // If there is an error, rollback the transaction and return an error message
+            $this->pdo->rollBack();
+            $value_return = array("response" => "error", "title" => "Oops!", "msg" => "An error occurred while processing the withdrawal.");
+            return json_encode($value_return);
+        }
+    }
+
 }
 
