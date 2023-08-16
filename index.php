@@ -171,7 +171,7 @@ if (isset($_POST['amount'])) {
 														<span class="fs-14">₦3,784</span>
 													</div>
 												</div> -->
-										<button class="btn btn-outline-info rounded d-block btn-lg btn-block"> Loans</button>
+										<a class="btn btn-outline-info rounded d-block btn-lg btn-block" href="loans.php"> Loans</a>
 
 									</div>
 									<div class="col-xl-3 mb-3 col-xxl-6 col-sm-6">

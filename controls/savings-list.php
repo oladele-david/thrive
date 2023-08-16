@@ -49,6 +49,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit();
     }
 }
+
+// ! PHP code to handle the cancel action
+if (isset($_POST['action']) && $_POST['action'] === 'end') {
+    $savingId = $_POST['savingId'];
+    $pin = $_POST['pin']; // Get the PIN value from the AJAX request
+    // Validate the PIN here (you can use your existing validation code)
+    $pinResult = $account->validatePin($userInSession, $pin);
+    if (!$pinResult['valid']) {
+        if ($pinResult['locked']) {
+            // The account is locked, show a message indicating that the user needs to wait before trying again
+            ob_clean();
+            $value_return = array("response" => "error", "title" => "Account Locked", "msg" => "Too many incorrect PIN attempts. Please try again later.");
+            echo json_encode($value_return);
+            exit();
+        } else {
+            // The PIN is invalid, show a message indicating that the PIN is incorrect
+            ob_clean();
+            $value_return = array("response" => "error", "title" => "Oops!", "msg" => "Invalid Pin.");
+            echo json_encode($value_return);
+            exit();
+        }
+    } else {    
+
+        $end_savings = $savings->endSavings($userInSession, $savingId);
+
+        if ($end_savings) {
+            ob_clean();            
+            echo $end_savings;
+            exit();
+        } else {
+            ob_clean();
+            echo $end_savings;
+            exit();
+        }
+    }
+}
+
 ?>
 
 
@@ -122,10 +159,14 @@ if (isset($_POST['loadRecords'])) {
                             </div>
                             <div class="dropdown-menu dropdown-menu-right">
                                 <a class="dropdown-item open-record" href="javascript:void(0)" data-saving-id="<?php echo $saving['id']; ?>" data-account-id="<?php echo $saving['account_id']; ?>">View Savings</a>
-                                <?php if ($saving['status'] === 'active') : ?>
-                                <a class="dropdown-item add-amount" href="javascript:void(0)" data-saving-id="<?php echo $saving['id']; ?>" data-account-id="<?php echo $saving['account_id']; ?>">Add to Savings</a>
-                                <?php endif; ?>
                                 <a class="dropdown-item view-history" href="javascript:void(0)" data-saving-id="<?php echo $saving['id']; ?>" data-account-id="<?php echo $saving['account_id']; ?>">Saving History</a>
+
+                                <?php if ($saving['status'] === 'active') : ?>
+                                    <a class="dropdown-item add-amount" href="javascript:void(0)" data-saving-id="<?php echo $saving['id']; ?>" data-account-id="<?php echo $saving['account_id']; ?>">Add to Savings</a>
+                                <?php endif; ?>
+                                <?php if ($saving['status'] === 'active' && $saving['special'] == 1) : ?>
+                                    <a class="dropdown-item end" href="javascript:void(0)" data-saving-id="<?php echo $saving['id']; ?>">End Savings</a>
+                                <?php endif; ?>
                             </div>
                         </div>
                     </td>
@@ -589,7 +630,79 @@ if (isset($_POST['savingId'])) {
             });
 
         });
+
+        $(document).on("click", ".end", function() {
+            // Get the saving ID
+            var savingId = $(this).data("saving-id");
+
+            swal({
+                title: 'End This Savings Plan?',
+                text: "You won't be able to revert this process!",
+                type: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, End!',
+                showLoaderOnConfirm: true,
+                input: 'password', // Set the input type to password
+                inputAttributes: {
+                    autocapitalize: 'off',
+                    placeholder: 'Enter your PIN', // Add a placeholder for the input field
+                    maxlength: 4, // Set the maxlength to 4
+                    autocomplete: 'off',
+                },
+                inputValidator: (value) => {
+                    if (!value) {
+                        return 'You need to enter your PIN!'; // Display an error message if the input field is empty
+                    }
+                },
+                preConfirm: function() {
+                    return new Promise(function(resolve) {
+                        let pin = Swal.getInput().value;
+
+                        $.ajax({
+                                type: 'POST',
+                                url: 'savings-list.php', // Replace with the actual PHP file name
+                                data: {
+                                    action: "end",
+                                    savingId: savingId,
+                                    pin: pin, // Include the PIN in the data object
+                                },
+                                dataType: 'json',
+                            })
+                            .done(function(results) {
+                                // var jsonData = JSON.parse(response)
+                                if (results.response == "success") {
+                                    
+                                    Swal({
+                                        type: results.response,
+                                        title: results.title,
+                                        text: results.msg,
+                                        confirmButtonText: 'Okay'
+                                    });
+                                } else {
+                                    Swal({
+                                        type: results.response,
+                                        title: results.title,
+                                        text: results.msg,
+                                        confirmButtonText: 'Try Again'
+                                    });
+                                }
+
+                            })
+                            .fail(function(results) {
+                                // console.log(results)
+                                swal('Oops!', 'Something went wrong with this request!', 'error');
+                            });
+                    });
+                },
+                allowOutsideClick: false
+            });
+
+        });
+
     });
+   
 </script>
 </body>
 

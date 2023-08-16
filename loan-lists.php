@@ -88,7 +88,7 @@ if (isset($_POST['loadRecords'])) {
                                 <?php
                                 $startDate = $loan['start_date'];
                                 $endDate = $loan['end_date'];
-                                echo date('d-m-Y', strtotime($startDate)) . " / " . date('d-m-Y', strtotime($startDate));
+                                echo date('d-m-Y', strtotime($startDate)) . " / " . date('d-m-Y', strtotime($endDate));
                                 ?>
                             </span>
                         <?php endif; ?>
@@ -295,19 +295,7 @@ if (isset($_POST['savingId'])) {
 
 <?php include('includes/header.php') ?>
 <?php include('includes/sidebar.php') ?>
-<style>
-    /* Chrome, Safari, Edge, Opera */
-    input::-webkit-outer-spin-button,
-    input::-webkit-inner-spin-button {
-        -webkit-appearance: none;
-        margin: 0;
-    }
 
-    /* Firefox */
-    input[type=number] {
-        -moz-appearance: textfield;
-    }
-</style>
 <!--**********************************
     Content body start
 ***********************************-->
@@ -343,7 +331,7 @@ if (isset($_POST['savingId'])) {
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="addToSavingsModalLabel">Add to Savings</h5>
+                <h5 class="modal-title" id="addToSavingsModalLabel">Add to Loans</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
